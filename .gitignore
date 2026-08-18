@@ -1,0 +1,6 @@
+# local dev link to the DSH runtime (not part of the plugin)
+node_modules/
+
+# editor / OS noise
+.DS_Store
+*.log
