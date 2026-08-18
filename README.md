@@ -8,11 +8,13 @@ A **validation plugin** that turns DeepSeek Harness's subagent capability into a
 
 ## Features
 
-- **🐋 Bot roster** — a sidebar entry (`sidebar.footer.action`) opens a glassy panel (`shell.overlay`) listing your bots: avatar, name, persona summary.
-- **➕ Create / edit / delete bots** — name, emoji avatar, persona prompt; persisted in `localStorage`.
-- **💬 Chat with a bot** — each message dispatches a one-shot subagent (`provider: "spawn"`) whose prompt carries the bot persona + your message; replies stream back into the panel. Conversation history is client-owned.
-- **🎨 DeepSeek visual style** — blue-violet gradient glass, whale motif.
-- **🔌 Zero core patches** — client UI rides `ctx.slots.inject`, host service is a plain HTTP route on the profile's web server. Toggle off / remove the plugin and the stock UI returns exactly.
+- **🐋 Bot roster** — a sidebar entry (`sidebar.footer.action`) opens a compact panel (`shell.overlay`) listing your bots as an icon grid, with history search over chats.
+- **➕ Create / delete bots** — 21 official role icons (used ones grey out — no repeats), auto-bound colors, persona prompt; delete uses an iPhone-style red-badge + Yes/No confirm, then cleans the bot's chat/position/profile data.
+- **💬 Floating chat windows** — draggable, resizable, minimizable, multi-window parallel; click-to-front + input focus; viewport-clamped (never stranded off-screen); minimized bots collapse into a capsule row (待命中 / 进行中 with animated status glyphs).
+- **🧠 Continuable conversations** — each bot owns one durable subagent session (`startContinuable` + `followup`): native memory across turns, no per-message session pile-up, auto-rebuild when the parent session switches.
+- **📊 Structured output** — bot replies render thinking folds, tool-call chips, inline markdown images, and dsh-ui cards (text / list / keyvalue 4-shapes / table / callout / stat / steps / grid) inside the floating window.
+- **🎨 Theme-native** — every color/border/radius comes from the official `--dsw-alias-*` tokens; icons are official `dsh-client-ui-primitives` glyphs with CSS motion (spin / breathe / check).
+- **🔌 Zero core patches** — client UI rides `ctx.slots.inject`; host is a plain HTTP route on the profile web server with same-origin guard, request validation, and per-bot request locking. Toggle off / remove the plugin and the stock UI returns exactly.
 
 ## Install
 
@@ -32,13 +34,13 @@ Then append to `$DSH_HOME/profiles/web/cordis.patch.yml`:
       name: '@deepseek-ai/dsh-client-ui-bot-mode'
 ```
 
-Restart the web profile (`dsh web`) and reload the page. The 🐋 entry appears at the sidebar foot, next to Settings.
+Restart the web profile (`dsh web`) and reload the page. The Bot Mode entry appears at the sidebar foot, next to Settings.
 
 ## Usage
 
-1. Click **🐋 Bot Mode** in the sidebar footer (or the Bot Mode card under Settings → Plugins).
-2. In the panel: **＋ 新建 Bot** — pick a name, emoji avatar, and persona prompt (e.g. "你是精通 SQL 的数据分析师…").
-3. Click a bot to open its chat; type a message and send. The bot replies in character.
+1. Click **Bot Mode** in the sidebar footer (or the Bot Mode card under Settings → Plugins).
+2. In the panel: **＋ 新建Bot** — pick one of the 21 role icons (used ones are greyed out), a name, and a persona prompt.
+3. Click a bot to open a floating chat window; type and send. The bot replies in character, remembers the conversation, and can render tables/cards/images.
 
 ## Architecture
 
@@ -46,14 +48,14 @@ Restart the web profile (`dsh web`) and reload the page. The 🐋 entry appears 
 Browser (client plugin)                    Node (host plugin)
 ┌─────────────────────────────┐            ┌──────────────────────────────┐
 │ BotModeEntry  sidebar.footer│  fetch     │ POST /bot-mode/chat          │
-│ BotModeOverlay shell.overlay│ ─────────▶ │   ctx.subagents.start("spawn")│
-│ BotChat        chat view    │  JSON      │   persona + message → prompt │
-│ BotModeCard    settings     │ ◀───────── │   settleRun → reply          │
+│ BotModeOverlay shell.overlay│ ─────────▶ │   startContinuable/followup  │
+│ BotChatWindow  chat windows │  JSON      │   poll child session events  │
+│ BotModeCard    settings     │ ◀───────── │   (e.data.message.content)   │
 └─────────────────────────────┘   reply    └──────────────────────────────┘
 ```
 
-- Client: `lib/client.js` — `__ModuleLoader__` bundle (hand-authored, no build step), registers into `settings.plugin.item`, `sidebar.footer.action`, `shell.overlay`.
-- Host: `lib/index.js` — registers `POST /bot-mode/chat` on the profile web server; locates the calling agent by `sessionId`, starts a one-shot subagent whose first text block carries the persona.
+- Client: `lib/client.js` — `__ModuleLoader__` bundle (hand-authored, no build step), registers into `settings.plugin.item` (serves the `settings.botmode` locale namespace), `sidebar.footer.action`, `shell.overlay`.
+- Host: `lib/index.js` — registers `POST /bot-mode/chat` (continuable dispatch) and `POST /bot-mode/cleanup` (release entry on bot delete) on the profile web server; same-origin guarded; one durable subagent per bot; replies are polled from the child session's event log (`turn/end` boundary → `assistant/message` content).
 
 ## Development
 
@@ -61,18 +63,19 @@ Browser (client plugin)                    Node (host plugin)
 dsh-bot-mode/
 ├── package.json       # dsh.client manifest (platform: web)
 ├── lib/
-│   ├── index.js       # host half: HTTP route + subagent dispatch
+│   ├── index.js       # host half: continuable chat + cleanup routes
 │   └── client.js      # client half: roster + chat UI (no build step)
 └── node_modules/      # local link to @deepseek-ai/dsh-subagent (dev only)
 ```
 
 ## Roadmap (validation → production)
 
-- [ ] Persisted per-bot chat history
+- [x] Per-bot persisted chat history (per-bot localStorage keys)
 - [ ] Bot-to-bot messaging (@mention relay)
 - [ ] Group chats (round-robin coordination)
 - [ ] Routines (cron tasks per bot via `dsh-schedule`)
 - [ ] Deep persona injection via `system-prompt/assemble`
+- [ ] Cross-tab state sync (store `sync` surface is reserved)
 
 ## License
 
