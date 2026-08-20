@@ -1,15 +1,31 @@
 # 🐋 DSH Bot Mode
 
-> **Bot Mode for DeepSeek Harness** — a roster of named bots with their own personas, chats and routines. / 把 DeepSeek Harness 的子 Agent 变成一群有名字、有性格的 Bot。
+> **Bot Mode for DeepSeek Harness** — a roster of named bots with their own personas, chats and routines. / 把 DeepSeek Harness 的子 Agent 变成一群有名字、有性格的 Bot。**分享快乐，快乐分享。**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Available on awesome-dsh-plugin](https://img.shields.io/badge/awesome--dsh--plugin-listed-blue)](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/data/plugins/zenghaili0901__dsh-bot-mode.yml)
 
 A **validation plugin** that turns DeepSeek Harness's subagent capability into a friendly roster of named bots — each with its own name, avatar, persona (system prompt), and chat. Built on the native DSH plugin seams: **zero core patches**, every effect removable.
 
+<p align="center">
+  <img src="assets/bot-roster.png" alt="Bot Mode roster — 8 named bots with their own personas and chats" width="680"/>
+</p>
+
 ## Features
 
-- **🐋 Bot roster** — a sidebar entry (`sidebar.footer.action`) opens a compact panel (`shell.overlay`) listing your bots as an icon grid, with history search over chats.
+- **🐋 Bot roster** — a sidebar entry (`sidebar.footer.action`) opens a compact panel (`shell.overlay`) listing your bots as an icon grid, with history search over chats. Minimized bots collapse into a capsule row with live status glyphs (待命中 / 进行中).
+
+  <p align="center">
+    <img src="assets/bot-roster-mini.png" alt="Bot roster panel — standby capsules" width="560"/>
+  </p>
+
 - **➕ Create / delete bots** — 21 official role icons (used ones grey out — no repeats), auto-bound colors, persona prompt; delete uses an iPhone-style red-badge + Yes/No confirm, then cleans the bot's chat/position/profile data.
+
+  <p align="center">
+    <img src="assets/bot-create.png" alt="Create bot dialog — pick a role icon, name, and persona" width="460"/>
+    <img src="assets/bot-delete.png" alt="Delete confirmation with red badge" width="460"/>
+  </p>
+
 - **💬 Floating chat windows** — draggable, resizable, minimizable, multi-window parallel; click-to-front + input focus; viewport-clamped (never stranded off-screen); minimized bots collapse into a capsule row (待命中 / 进行中 with animated status glyphs).
 - **🧠 Continuable conversations** — each bot owns one durable subagent session (`startContinuable` + `followup`): native memory across turns, no per-message session pile-up, auto-rebuild when the parent session switches.
 - **📊 Structured output** — bot replies render thinking folds, tool-call chips, inline markdown images, and dsh-ui cards (text / list / keyvalue 4-shapes / table / callout / stat / steps / grid) inside the floating window.
@@ -62,6 +78,7 @@ Browser (client plugin)                    Node (host plugin)
 ```
 dsh-bot-mode/
 ├── package.json       # dsh.client manifest (platform: web)
+├── assets/            # README screenshots
 ├── lib/
 │   ├── index.js       # host half: continuable chat + cleanup routes
 │   └── client.js      # client half: roster + chat UI (no build step)
